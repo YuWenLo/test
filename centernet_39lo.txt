@@ -1,3 +1,4 @@
+Parameters= 7931085
 HarDNetSeg(
   (base): ModuleList(
     (0): ConvLayer(
