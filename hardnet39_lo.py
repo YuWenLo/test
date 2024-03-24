@@ -326,6 +326,14 @@ class HarDNetBase(nn.Module):
             grmul = 1.6
             gr       = [  16,  20, 64]
             n_layers = [   4,  16,  8]
+        elif arch == 30:
+            first_ch  = [16, 32]
+            second_kernel = 3
+
+            ch_list = [  64, 192]
+            grmul = 1.6
+            gr       = [  16,  20]
+            n_layers = [   4,  16]
         else:
           print("Error: HarDNet",arch," has no implementation.")
           exit()
@@ -452,6 +460,19 @@ class HarDNetSeg(nn.Module):
           channels = [124, 328, 518]
           self.skip_lv = 1
           scales = [2 ** i for i in range(len(channels[self.first_level:]))]
+
+        elif num_layers == 30:
+          self.grmul = 1.6
+          self.last_proj = ConvLayer(292, 192, kernel=1)#
+          self.last_blk = HarDBlock(576, 56, self.grmul, 4)#
+          self.skip_nodes = [1,3,8,11]#
+          self.SC = [32]  
+          gr = [16]#
+          layers = [4]
+          ch_list2 = [224+self.SC[0]]#
+          channels = [72, 292]
+          self.skip_lv = 0
+          scales = [2 ** i for i in range(len(channels[self.first_level:]))]
         
         
 
@@ -482,8 +503,10 @@ class HarDNetSeg(nn.Module):
         
         if num_of_range == 3:
             prev_ch += self.SC[0] + self.SC[1] + self.SC[2]
-        else:
+        elif num_of_range == 2:
             prev_ch += self.SC[0] + self.SC[1]
+        else:
+            prev_ch += self.SC[0]
 
         weights_init(self.denseBlocksUp) 
         weights_init(self.conv1x1_up) 
