@@ -177,7 +177,13 @@ if __name__ == '__main__':
     
     model = model.cuda()
     model.eval()
-    input_tensor = torch.randn(1, 3, 120, 180).cuda()
+
+    state_dict = model.state_dict()
+    data = {'epoch': 0,
+          'state_dict': state_dict}
+    torch.save(data,  'hardnet39.pth')
+    batch = 1
+    input_tensor = torch.randn(batch, 3, 432, 768).cuda()
     
     time0 = time.time()
     out = model(input_tensor)
@@ -196,34 +202,42 @@ if __name__ == '__main__':
     model = model.float()
     input_names = ["input"]
     output_names = ["hm", "wh"]
+    # dynamic_axes = {"input": {0: "batch"}, "output": {0: "batch"}}
+    dynamic_axes = {"input": {0: "batch"}, "hm": {0: "batch"}, "wh": {0: "batch"}}
 
     # 將模型轉換為 ONNX 格式
-    # torch.onnx.export(model, input_tensor, "model.onnx", input_names=input_names, output_names=output_names, opset_version=11, verbose=False)
+    # torch.onnx.export(model, input_tensor, "hardnet39_dynamic.onnx", input_names=input_names, output_names=output_names, opset_version=11, verbose=False, dynamic_axes=dynamic_axes)
 
     # 讀取 ONNX 模型
-    onnx_model = onnx.load("model.onnx")
+    onnx_model = onnx.load("hardnet39_dynamic.onnx")
 
     # 使用 ONNX runtime 執行推理
-    ort_session = onnxruntime.InferenceSession("model.onnx")
+    ort_session = onnxruntime.InferenceSession("hardnet39_dynamic.onnx")
     input_data = {"input": input_tensor.cpu().numpy()}
     time2 = time.time()
     out_trt = ort_session.run(output_names, input_data)
     time3 = time.time()
 
-    print(out_trt)
+    # print(out_trt)
+    print(type(out[0]['hm']), ", ", out[0]['hm'].size())
+    print(torch.from_numpy(out_trt[0]).size())
 
-    # 檢查輸出是否與 PyTorch 一致
-    out_cpu = [{'hm': item['hm'].cpu() for item in out}]
-    out_trt_cpu = [torch.from_numpy(item[0]).cpu() for item in out_trt]
-    abs_diff = [torch.abs(item1['hm'] - item2) for item1, item2 in zip(out_cpu, out_trt_cpu)]
-    print(abs_diff)
-    sum_abs_diff = sum(torch.sum(diff) for diff in abs_diff)
-    print("hm絕對值差的和:", sum_abs_diff.item())
+    hm_mse = torch.mean((out[0]['hm'].cpu() - torch.from_numpy(out_trt[0])) ** 2)
+    print("hm Mean Squared Error:", hm_mse.item())
+    wh_mse = torch.mean((out[0]['wh'].cpu() - torch.from_numpy(out_trt[1])) ** 2)
+    print("wh Mean Squared Error:", wh_mse.item())
     print(f"原始模型執行時間 = {time1 - time0}, 轉換為 ONNX 後的模型執行時間 = {time3 - time2}")
 
     '''
-    hm絕對值差的和: 9.5367431640625e-07
-    原始模型執行時間 = 0.18599867820739746, 轉換為 ONNX 後的模型執行時間 = 0.01972651481628418
+    batch = 1
+    hm Mean Squared Error: 7.94974500839398e-17
+    wh Mean Squared Error: 1.18072820460979e-19
+    原始模型執行時間 = 1.5978989601135254, 轉換為 ONNX 後的模型執行時間 = 0.25577259063720703
+
+    batch = 12
+    hm Mean Squared Error: 8.315250313046052e-17
+    wh Mean Squared Error: 1.7047074438421247e-19
+    原始模型執行時間 = 1.7412919998168945, 轉換為 ONNX 後的模型執行時間 = 3.8112165927886963
     '''
 
     # ------------------------------------------------------------------------------------------------------------
