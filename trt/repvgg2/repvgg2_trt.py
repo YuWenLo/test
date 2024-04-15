@@ -16,8 +16,8 @@ model.eval()
 # torch.save(model.state_dict(),  'repvgg2_weight/rep_tiny.pth')
 model.load_state_dict(torch.load('repvgg2_weight/rep_tiny.pth'))
 
-torch.manual_seed(42)
-batch = 2
+torch.manual_seed(1)
+batch = 8
 input_tensor = torch.randn(batch, 3, 48, 60).cuda()
 time0 = time.time()
 out = model(input_tensor)
@@ -71,7 +71,7 @@ time5 = time.time()
 out_trt = output_buf
 
 for i in range(batch):
-    output_mse = torch.mean((out[i] - out_trt[0]) ** 2)
+    output_mse = torch.mean((out[i] - out_trt[i]) ** 2)
     print(output_mse)
 
 # output_mse_onnxtrt = torch.mean((out_trt.cpu() - torch.from_numpy(out_onnx[0])) ** 2)

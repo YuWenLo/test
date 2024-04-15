@@ -4,7 +4,7 @@ TRT_LOGGER = trt.Logger(trt.Logger.WARNING)
 EXPLICIT_BATCH = 1 << (int)(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)
 onnx_file = 'repvgg2_weight/rep_tiny.onnx'
 trt_file = 'repvgg2_weight/rep_tiny.trt'
-batch_size = 6
+batch_size = 8
 
 
 """Takes an ONNX file and creates a TensorRT engine to run inference with"""
@@ -15,7 +15,7 @@ with trt.Builder(TRT_LOGGER) as builder, builder.create_network(EXPLICIT_BATCH) 
 
     # 创建优化配置文件
     profile = builder.create_optimization_profile()
-    profile.set_shape("input", (1, 3, 48, 60), (1, 3, 48, 60), (6, 3, 48, 60))  # 设置输入形状
+    profile.set_shape("input", (1, 3, 48, 60), (1, 3, 48, 60), (8, 3, 48, 60))  # 设置输入形状
 
     # 为引擎设置优化配置文件
     config.add_optimization_profile(profile)
