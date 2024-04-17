@@ -1,0 +1,1 @@
+pip install nvidia-tensorrt==8.2.5.1
