@@ -1,0 +1,26 @@
+python main_test_model.py ctdet --arch hardnet_85 --batch_size 32 --num_epochs 300 --lr 1e-4 --gpus 0 --lr_step 60,120,180,240 --val_intervals 1
+
+
+python main_test_model.py ctdet --arch hardnetlo_39 --batch_size 32 --num_epochs 300 --lr 1e-4 --gpus 0 --lr_step 60,120,180,240 --val_intervals 1
+
+python test.py ctdet --arch hardnetlo_39 --not_prefetch_test
+
+
+python demo.py ctdet --arch hardnetlo_39 --demo /home/yllab/LoYuWen/CenterNet-HarDNet_lo/images/val_video1_533.jpg --load_model hardnet39.pth
+
+python main_test_model.py ctdet --arch hardnet_48 --batch_size 32 --num_epochs 300 --lr 1e-4 --gpus 0 --lr_step 60,120,180,240 --val_intervals 1
+
+python demo.py ctdet --arch hardnet_48 --demo /home/yllab/LoYuWen/CenterNet-HarDNet_lo/images/val_video1_533.jpg --load_model centernet/hardnet48_e0.pth
+-----------------------------------------------
+main_test_model.py
+base_detector.py
+ctdet.py
+python onnx2trt.py
+
+
+
+https://blog.csdn.net/qq_14839543/article/details/114982354
+https://suborbit.net/posts/tensorrt-tutorial/
+https://zhuanlan.zhihu.com/p/387853124
+
+conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
